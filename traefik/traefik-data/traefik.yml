@@ -1,0 +1,45 @@
+## traefik.yml
+
+# Docker configuration backend
+providers:
+  docker:
+    defaultRule: "Host(`{{ trimPrefix `/` .Name }}.docker.localhost`)"
+
+# API and dashboard configuration
+api:
+  insecure: true
+  dashboard: true
+## Static configuration
+entryPoints:
+  web:
+    address: ":80"
+
+  websecure:
+    address: ":443"
+
+accessLog: {}
+
+log:
+  level: DEBUG
+
+certificatesResolvers:
+  le:
+    acme:
+      email: jojo@kimchi.ovh
+      storage: /acme.json
+      httpChallenge:
+        entryPoint: web
+      dnsChallenge:
+        provider: ovh
+        delayBeforeCheck: 0
+
+tls:
+  certificates:
+    - certFile: /etc/letsencrypt/live/traefik.kimchi.ovh/fullchain.pem
+      keyFile: /etc/letsencrypt/live/traefik.kimchi.ovh/privkey.pem
+
+  stores:
+    default: {}
+  options:
+    default:
+      minVersion: VersionTLS12
