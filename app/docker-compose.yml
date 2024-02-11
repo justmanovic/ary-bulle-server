@@ -11,14 +11,30 @@ services:
       - strapi_prod
       - traefik-public
     env_file: .env
+#    labels:
+#      - "traefik.enable=true"
+#      - "traefik.docker.network=traefik-public"
+#      - "traefik.http.routers.nextjs.entrypoints=websecure"
+#      - "traefik.http.routers.chana.rule=Host(`www.kimchi.ovh`) || Host(`kimchi.ovh`)"
+##      - "traefik.http.routers.nextjs.rule=Host(`kimchi.ovh`)"
+#      - "traefik.http.routers.nextjs.tls=true"
+#      - "traefik.http.routers.nextjs.tls.certresolver=le"
+#      - "traefik.http.routers.nextjs.tls.domains[0].main=www.kimchi.ovh"
+#      - "traefik.http.routers.nextjs.tls.domains[0].main=kimchi.ovh"
+#      - "traefik.http.services.nextjs.loadbalancer.server.port=${NEXTJS_PORT}"
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=traefik-public"
       - "traefik.http.routers.nextjs.entrypoints=websecure"
-      - "traefik.http.routers.nextjs.rule=Host(`kimchi.ovh`)"
+      - "traefik.http.routers.nextjs.rule=Host(`www.kimchi.ovh`) || Host(`kimchi.ovh`)"
+      - "traefik.http.routers.nextjs.middlewares=redirect-to-non-www@docker"
+      - "traefik.http.middlewares.redirect-to-non-www.redirectregex.regex=^https://www.(.*)"
+      - "traefik.http.middlewares.redirect-to-non-www.redirectregex.replacement=https://$$1"
+      - "traefik.http.middlewares.redirect-to-non-www.redirectregex.permanent=true"
       - "traefik.http.routers.nextjs.tls=true"
       - "traefik.http.routers.nextjs.tls.certresolver=le"
-      - "traefik.http.routers.nextjs.tls.domains[0].main=kimchi.ovh"
+      - "traefik.http.routers.nextjs.tls.domains[0].main=www.kimchi.ovh"
+      - "traefik.http.routers.nextjs.tls.domains[0].sans=kimchi.ovh"
       - "traefik.http.services.nextjs.loadbalancer.server.port=${NEXTJS_PORT}"
   strapi_prod:
     image: registry.kimchi.ovh/ary-strapi-app:${STRAPI_TAG}
