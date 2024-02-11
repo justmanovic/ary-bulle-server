@@ -5,9 +5,6 @@ services:
     container_name: traefik
     networks:
       - traefik-public
-    depends_on:
-      - registry
-
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./traefik-data/traefik.yml:/etc/traefik/traefik.yml
@@ -43,37 +40,6 @@ services:
       - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
       - "traefik.http.middlewares.api-auth.basicauth.users=jonathan:$$apr1$$1kjZC3Od$$en86Nk47Jmyi/Yudkedms1"
       - 'traefik.http.routers.api.middlewares=api-auth'
-  registry:
-    restart: always
-    image: registry:2
-    container_name: registry
-    networks:
-      - traefik-public
-    ports:
-    - "5000:5000"
-#    environment:
-#      REGISTRY_AUTH: htpasswd
-#      REGISTRY_AUTH_HTPASSWD_REALM: Registry
-#      REGISTRY_AUTH_HTPASSWD_PATH: /auth/registry.password
-##      REGISTRY_AUTH_HTPASSWD_PATH: /registry-auth/registry.password
-#      REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY: /registry-data
-#      REGISTRY_STORAGE_DELETE_ENABLED: true
-    volumes:
-      - /home/user/.docker:/root/.docker:ro
-      - ./registry-auth:/auth
-      - ./registry-data:/data
-    labels:
-      - "traefik.enable=true"
-      - "traefik.docker.network=traefik-public"
-      - "traefik.http.routers.registry.entrypoints=websecure"
-      - "traefik.http.routers.registry.rule=Host(`registry.kimchi.ovh`)"
-      - "traefik.http.routers.registry.tls=true"
-      - "traefik.http.routers.registry.tls.certresolver=le"
-      - "traefik.http.routers.registry.tls.domains[0].main=registry.kimchi.ovh"
-      - "traefik.http.routers.httpregistry.entrypoints=web"
-      - "traefik.http.routers.httpregistry.rule=Host(`registry.kimchi.ovh`)"
-      - "traefik.http.services.registry.loadbalancer.server.port=5000"
-
 networks:
   traefik-public:
     external: true

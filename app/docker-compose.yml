@@ -1,0 +1,32 @@
+version: "3"
+services:
+  strapi_prod:
+    image: registry.kimchi.ovh/ary-strapi-app:${STRAPI_TAG}
+    container_name: ary-strapi-app-prod
+    env_file: .env
+    restart: unless-stopped
+    volumes:
+#      - ./ary-strapi:/opt/app
+      - ./strapi-images:/opt/app/public/uploads
+      - ./db:/opt/app/.tmp
+    ports:
+      - 1337:1337
+    networks:
+      - strapi_prod
+      - traefik-public
+    environment:
+      - NODE_ENV=production
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-public"
+      - "traefik.http.routers.strapi.entrypoints=websecure"
+      - "traefik.http.routers.strapi.rule=Host(`strapi.kimchi.ovh`)"
+      - "traefik.http.routers.strapi.tls=true"
+      - "traefik.http.routers.strapi.tls.certresolver=le"
+      - "traefik.http.routers.strapi.tls.domains[0].main=strapi.kimchi.ovh"
+      - "traefik.http.services.strapi.loadbalancer.server.port=1337"
+
+networks:
+  strapi_prod:
+  traefik-public:
+    external: true

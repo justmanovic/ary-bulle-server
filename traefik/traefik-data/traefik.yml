@@ -37,6 +37,12 @@ tls:
   certificates:
     - certFile: /etc/letsencrypt/live/traefik.kimchi.ovh/fullchain.pem
       keyFile: /etc/letsencrypt/live/traefik.kimchi.ovh/privkey.pem
+    - certFile: /etc/letsencrypt/live/registry.kimchi.ovh/fullchain.pem
+      keyFile: /etc/letsencrypt/live/registry.kimchi.ovh/privkey.pem
+    - certFile: /etc/letsencrypt/live/strapi.kimchi.ovh/fullchain.pem
+      keyFile: /etc/letsencrypt/live/strapi.kimchi.ovh/privkey.pem
+    # - certFile: /etc/letsencrypt/live/kimchi.ovh/fullchain.pem
+    #   keyFile: /etc/letsencrypt/live/kimchi.ovh/privkey.pem
 
   stores:
     default: {}

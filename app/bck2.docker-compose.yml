@@ -1,0 +1,46 @@
+version: '3'
+services:
+  # nextjs:
+  #   build: ./ary-front
+  #   container_name: ary-nextjs-app
+  #   ports:
+  #     - 3000:3000
+  #   volumes:
+  #     - ./ary-front:/app
+  #   depends_on:
+  #     - strapi
+  #   environment:
+  #     - NEXT_PUBLIC_STRAPI_URL=http://host.docker.internal:1337
+  #   networks:
+  #     - strapi_prod 
+
+  strapi_prod:
+    # image: registry.kimchi.ovh/:${STRAPI_TAG}
+    image: registry.kimchi.ovh/ary-strapi-app:1.0.3
+    container_name: ary-strapi-app-prod
+#    volumes:
+     # - ./ary-strapi:/opt/app
+#      - ./strapi-images:/app/public/uploads
+    ports:
+      - 1337:1337
+    networks:
+      - strapi_prod
+      - traefik-public
+
+    environment:
+      - NODE_ENV=production
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-public"
+      - "traefik.http.routers.strapi.entrypoints=websecure"
+      - "traefik.http.routers.strapi.rule=Host(`strapi.kimchi.ovh`)"
+      - "traefik.http.routers.strapi.tls=true"
+      - "traefik.http.routers.strapi.tls.certresolver=le"
+      - "traefik.http.routers.strapi.tls.domains[0].main=strapi.kimchi.ovh"
+      - "traefik.http.services.strapi.loadbalancer.server.port=1337"
+
+networks:
+  strapi_prod:
+  traefik-public:
+    external: true
+
