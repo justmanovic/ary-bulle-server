@@ -1,0 +1,52 @@
+version: '3'
+services:
+  postgres_nicettes:
+    image: postgres:14
+    container_name: postgres_nicettes
+    networks:
+      - postgres_nicettes_network
+      - traefik-public
+      # - strapi_nicettes_network
+    ports:
+      - "5435:5432"
+    env_file: .env
+    environment:
+      # POSTGRES_HOST_AUTH_METHOD: "trust"
+      POSTGRES_DB: strapinicettes
+      POSTGRES_USER: strapinicettes
+      POSTGRES_PASSWORD: strapinicettes
+    volumes:
+      - ./data:/var/lib/postgresql/data
+
+  strapi_nicettes:
+    depends_on:
+      - postgres_nicettes
+    # build:
+    #   context: ./strapi-nicettes-app
+    #   dockerfile: Dockerfile
+    image: registry.kimchi.ovh/strapinicettes:${STRAPI_TAG}
+    container_name: strapinicettes-container
+    volumes:
+      # - ./strapi-nicettes-app:/opt/app
+      - ./strapi-images:/opt/app/public/uploads
+    ports:
+      - 1340:1340
+    networks:
+      - strapi_nicettes_network
+      - postgres_nicettes_network
+      - traefik-public
+    env_file: .env
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-public"
+      - "traefik.http.routers.strapinicettes.entrypoints=websecure"
+      - "traefik.http.routers.strapinicettes.rule=Host(`strapinicettes.kimchi.ovh`)"
+      - "traefik.http.routers.strapinicettes.tls=true"
+      - "traefik.http.routers.strapinicettes.tls.certresolver=le"
+      - "traefik.http.routers.strapinicettes.tls.domains[0].main=strapinicettes.kimchi.ovh"
+      - "traefik.http.services.strapinicettes.loadbalancer.server.port=1340"
+networks:
+  strapi_nicettes_network:
+  postgres_nicettes_network:
+  traefik-public:
+    external: true

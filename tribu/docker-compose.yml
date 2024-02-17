@@ -1,0 +1,79 @@
+version: '3'
+services:
+# ----------------POSTGRES -----------------
+  pg:
+    image: postgres:14.6
+    container_name: pg
+    networks:
+      - tribu_postgres_network
+    ports:
+      - "5432:5432"
+    env_file: .env
+    volumes:
+      - ./data:/var/lib/postgresql/data
+
+# ----------------- RAILS API -----------------
+  api:
+#    build: ./tribu-back
+#    container_name: tribu-api
+#    hostname: api
+
+    image: registry.kimchi.ovh/apitribu-container:0.0.2
+    container_name: apitribu-container
+    env_file: .env
+    command: bundle exec rails s -b 0.0.0.0 -p 3001
+    networks:
+      - tribu_postgres_network
+      - tribu_api_network
+      - traefik-public
+    volumes:
+      - ./tribu-back:/tribu_api
+    ports:
+      - "3001:3001"
+    depends_on:
+      - pg
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-public"
+      - "traefik.http.routers.apitribu.entrypoints=websecure"
+      - "traefik.http.routers.apitribu.rule=Host(`apitribu.kimchi.ovh`)"
+      - "traefik.http.routers.apitribu.tls=true"
+      - "traefik.http.routers.apitribu.tls.certresolver=le"
+      - "traefik.http.routers.apitribu.tls.domains[0].main=apitribu.kimchi.ovh"
+      - "traefik.http.services.apitribu.loadbalancer.server.port=3001"
+
+  # ----------------- FRONT SITE WEB PUBLIC-----------------
+  public-front:
+    #build: ./tribu-B2B
+    #container_name: tribu-front
+    image: registry.kimchi.ovh/tribu-container:0.0.17
+    container_name: tribu-container
+    restart: always
+    env_file: .env
+    ports:
+      - "3005:3005"
+    networks:
+      - tribu_api_network
+      - tribu_postgres_network
+      - traefik-public
+    depends_on:
+      - api
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-public"
+      - "traefik.http.routers.tribu.entrypoints=websecure"
+      - "traefik.http.routers.tribu.rule=Host(`tribu.kimchi.ovh`)"
+      - "traefik.http.routers.tribu.tls=true"
+      - "traefik.http.routers.tribu.tls.certresolver=le"
+      - "traefik.http.routers.tribu.tls.domains[0].main=tribu.kimchi.ovh"
+      - "traefik.http.services.tribu.loadbalancer.server.port=3005"
+    # volumes:
+    #   - ./tribu-B2B:/app
+    #   - /app/.next
+
+networks:
+  tribu_api_network:
+  tribu_postgres_network:
+  traefik-public:
+    external: true
+

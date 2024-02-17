@@ -11,3 +11,6 @@
 .lesshst
 app/strapi-images
 .gitconfig
+
+tribu/data
+nicettes/data
