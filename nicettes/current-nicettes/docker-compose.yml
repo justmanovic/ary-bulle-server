@@ -1,0 +1,45 @@
+version: '3'
+services:
+# ----------------POSTGRES -----------------
+  pg-nicettes-rails:
+    image: postgres:14.6
+    container_name: pg-nicettes-rails
+    networks:
+      - rails_nicettes_postgres_network
+    ports:
+      - "5436:5432"
+    env_file: .env
+    volumes:
+      - ./data:/var/lib/postgresql/data
+
+# ----------------- RAILS API -----------------
+  api:
+    image: registry.kimchi.ovh/apinicettes-container:0.0.3
+    container_name: apinicettes-container
+    env_file: .env
+    command: bundle exec rails s -b 0.0.0.0 -p 3000
+    networks:
+      - rails_nicettes_postgres_network
+      # - tribu_api_network
+      - traefik-public
+#   volumes:
+#      - ./nicettes-back:/rails_nicettes
+    ports:
+      - "3000:3000"
+    depends_on:
+      - pg-nicettes-rails
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-public"
+      - "traefik.http.routers.apinicettes.entrypoints=websecure"
+      - "traefik.http.routers.apinicettes.rule=Host(`apinicettes.kimchi.ovh`)"
+      - "traefik.http.routers.apinicettes.tls=true"
+      - "traefik.http.routers.apinicettes.tls.certresolver=le"
+      - "traefik.http.routers.apinicettes.tls.domains[0].main=apinicettes.kimchi.ovh"
+      - "traefik.http.services.apinicettes.loadbalancer.server.port=3000"
+
+networks:
+  # tribu_api_network:
+  rails_nicettes_postgres_network:
+  traefik-public:
+    external: true

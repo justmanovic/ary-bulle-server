@@ -13,4 +13,5 @@ app/strapi-images
 .gitconfig
 
 tribu/data
-nicettes/data
+nicettes/current-nicettes/data/
+nicettes/new-nicettes/data/
